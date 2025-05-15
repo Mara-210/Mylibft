@@ -6,70 +6,85 @@
 /*   By: mramos-2 <mramos-2@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/08 18:22:32 by mramos-2          #+#    #+#             */
-/*   Updated: 2025/05/08 19:24:47 by mramos-2         ###   ########.fr       */
+/*   Updated: 2025/05/13 13:31:38 by mramos-2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-static int	ft_wordcount(char const *s, char c)
-{
-	int	isdelimiter;
-	int	words;
-
-	isdelimiter = 1;
-	words = 0;
-	while (s && *s)
-	{
-		if (*s == c)
-			isdelimiter = 1;
-		else if (*s != c && isdelimiter)
-		{
-			isdelimiter = 0;
-			words++;
-		}
-		s++;
-	}
-	return (words);
-}
-
-static void	ft_fillarr(char **res, char *str, int wcnt, char c)
+static size_t	clen(const char *s, char c)
 {
 	int	i;
-	int	wordlen;
 
 	i = 0;
-	wordlen = 0;
-	while (wcnt -- && str && *str)
+	while (s[i] != c && s[i] != '\0')
 	{
-		while (str[wordlen] != c && str[wordlen])
-			wordlen++;
-		res[i] = wordlen + 1;
-		while (*str == c)
-			str++;
-		wordlen = 0;
-		i++;
+		i ++;
 	}
-	res[i] = NULL;
+	return (i);
+}
+
+static int	count_c(const char *s, char c)
+{
+	int	i;
+	int	count;
+	int	flag;
+
+	i = 0;
+	count = 0;
+	flag = 0;
+	while (s[i])
+	{
+		if (s[i] != c && flag == 0)
+		{
+			count ++;
+			flag = 1;
+		}
+		if (s[i] == c && flag == 1)
+			flag = 0;
+		i ++;
+	}
+	return (count);
+}
+
+static char	**free_calloc(char **str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		free (str[i]);
+		i ++;
+	}
+	free (str);
+	return (0);
 }
 
 char	**ft_split(char const *s, char c)
 {
-	int		wcnt;
-	char	*trimmedstr;
-	char	**result;
+	size_t	i;
+	char	**str;
+	int		c_pos;
 
-	wcnt = ft_wordcount(s, c);
-	*trimmedstr = ft_strtrim(s, &c);
-	if (!trimmedstr)
-		return (NULL);
-	**result = malloc (sizeof(char *) * (wcnt + 1));
-	if (!result)
+	c_pos = 0;
+	i = 0;
+	str = ft_calloc(count_c(s, c) + 1, sizeof(char *));
+	if (!str)
+		return (0);
+	while (s[i])
 	{
-		free(trimmedstr);
-		return (NULL);
+		if (s[i] != c)
+		{
+			str[c_pos] = ft_calloc(clen(s + i, c) + 1, sizeof(char));
+			if (!str[c_pos])
+				return (free_calloc(str));
+			ft_memcpy (str[c_pos], s + i, clen(s + i, c));
+			c_pos ++;
+		}
+		i = i + clen(s + i, c) + 1;
+		if (i > ft_strlen(s))
+			return (str);
 	}
-	ft_fillarr(result, trimmedstr, wcnt, c);
-	free(trimmedstr);
-	return (result);
+	return (str);
 }
